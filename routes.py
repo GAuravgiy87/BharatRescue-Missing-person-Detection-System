@@ -332,9 +332,9 @@ def surveillance_detect():
         # Enhanced face detection simulation - higher chance when camera is active
         import random
         
-        # 30% chance of detecting a match when actively monitoring (increased for testing)
+        # 5% chance of detecting a match when actively monitoring (reduced to prevent false positives)
         # In a real system, this would process actual camera frames with face_recognition
-        if random.random() < 0.30 and missing_persons:
+        if random.random() < 0.05 and missing_persons:
             # Randomly select a missing person for simulation
             detected_person = random.choice(missing_persons)
             confidence = random.uniform(0.6, 0.95)  # High confidence match

@@ -25,10 +25,10 @@ def compare_faces(known_encoding, unknown_image_path, tolerance=0.6):
         if known_encoding is None:
             return False, 0.0
         
-        # Face recognition disabled - would normally compare faces here
+        # Face recognition disabled - return very low confidence to prevent false matches
         logging.info(f"Face comparison would be performed with {unknown_image_path}")
-        # Return a dummy result to simulate no match
-        return False, 0.3
+        # Return low confidence to prevent false positives
+        return False, 0.1
         
     except Exception as e:
         logging.error(f"Error comparing faces: {str(e)}")
