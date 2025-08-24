@@ -247,7 +247,7 @@ function startCamera(cameraId) {
     // Start detection for this camera
     detectionIntervals[cameraId] = setInterval(() => {
         performDetection(camera.ip, camera.location);
-    }, 3000); // Detection every 3 seconds for faster response
+    }, 2000); // Detection every 2 seconds for faster response
     
     addDetectionResult(`📹 Camera started: ${camera.location} (${camera.ip})`, 'success');
 }
@@ -356,8 +356,8 @@ function performDetection(cameraIP, location) {
                 } catch(e) {}
             } else {
                 // Regular monitoring message (show less frequently to avoid spam)
-                if (Math.random() < 0.3) { // Show only 30% of routine checks
-                    addDetectionResult(`${timestamp} - ${location}: Monitoring active (${cameraIP})`, 'info');
+                if (Math.random() < 0.15) { // Show only 15% of routine checks to reduce clutter
+                    addDetectionResult(`${timestamp} - ${data.message}`, 'info');
                 }
             }
         }
