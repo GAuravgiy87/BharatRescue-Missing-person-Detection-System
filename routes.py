@@ -163,15 +163,22 @@ def detection():
                 matches = []
                 missing_persons = MissingPerson.query.filter_by(status='missing').all()
                 
+                logging.info(f"🔍 DETECTION: Checking uploaded photo against {len(missing_persons)} missing persons")
+                
                 for person in missing_persons:
                     if person.face_encoding:
+                        logging.info(f"Comparing against: {person.name}")
                         is_match, confidence = compare_faces(person.face_encoding, filepath)
+                        
+                        logging.info(f"Result for {person.name}: Match={is_match}, Confidence={confidence:.1%}")
                         
                         if is_match and confidence > 0.4:  # Threshold for potential match
                             matches.append({
                                 'person': person,
                                 'confidence': confidence
                             })
+                            
+                            logging.info(f"✅ ADDED TO MATCHES: {person.name} with {confidence:.1%} confidence")
                             
                             # Create detection record
                             detection_record = Detection()
