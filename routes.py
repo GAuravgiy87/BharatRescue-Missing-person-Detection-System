@@ -193,20 +193,30 @@ def detection():
                                 person.status = 'found'
                                 person.updated_at = datetime.utcnow()
                                 
-                                # Send alert email
-                                if send_detection_alert(person, detection_record):
+                                # Save detection image for email attachment
+                                detection_image_path = filepath  # The uploaded detection photo
+                                
+                                # Send alert email with detection image
+                                from email_utils import send_detection_alert_with_image
+                                if send_detection_alert_with_image(person, detection_record, detection_image_path):
                                     detection_record.notified = True
+                                    logging.info(f"✅ EMAIL SENT: Alert with image sent for {person.name}")
+                                else:
+                                    logging.error(f"❌ EMAIL FAILED: Could not send alert for {person.name}")
                                     
                                 logging.info(f"PERSON FOUND: {person.name} marked as found with {confidence:.1%} confidence at {location}")
                             elif confidence > 0.4:
                                 # Still send alert for potential matches above 40%
-                                if send_detection_alert(person, detection_record):
+                                detection_image_path = filepath
+                                from email_utils import send_detection_alert_with_image
+                                if send_detection_alert_with_image(person, detection_record, detection_image_path):
                                     detection_record.notified = True
+                                    logging.info(f"✅ POTENTIAL MATCH EMAIL SENT: {person.name} at {location}")
                 
                 db.session.commit()
                 
-                # Clean up detection photo
-                os.remove(filepath)
+                # Don't delete detection photo immediately - keep it for email attachment
+                # It will be cleaned up later or kept as evidence
                 
                 if matches:
                     # Sort by confidence
@@ -359,11 +369,12 @@ def surveillance_detect():
                 detected_person.updated_at = datetime.utcnow()
                 logging.info(f"PERSON FOUND: {detected_person.name} marked as found with {confidence:.1%} confidence")
             
-            # Send email alert
+            # Send email alert with location info
             try:
-                if send_detection_alert(detected_person, detection_record):
+                from email_utils import send_detection_alert_with_image
+                if send_detection_alert_with_image(detected_person, detection_record):
                     detection_record.notified = True
-                    logging.info(f"ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
+                    logging.info(f"🎉 SURVEILLANCE ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
                 else:
                     logging.warning(f"Failed to send email alert for {detected_person.name}")
             except Exception as e:
