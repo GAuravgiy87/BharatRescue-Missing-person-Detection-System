@@ -42,13 +42,15 @@
                             <h6><i class="fas fa-info-circle"></i> Setup Instructions</h6>
                             <ol class="mb-0">
                                 <li>Install "IP Webcam" app on Android devices</li>
-                                <li>Open the app and tap "Start server"</li>
+                                <li>Connect devices to the same WiFi network</li>
+                                <li>Open IP Webcam app → Settings → Video → Resolution (720p recommended)</li>
+                                <li>Return to main screen → tap "Start server"</li>
                                 <li>Note the IP address shown (e.g., 192.168.1.100:8080)</li>
                                 <li>Enter IP and location, then click "Add Camera"</li>
-                                <li>System will automatically monitor all active cameras</li>
+                                <li>Click full stream link to view complete footage</li>
                             </ol>
                             <div class="alert alert-info mt-2">
-                                <small><strong>Max 5 cameras supported</strong> for optimal performance</small>
+                                <small><strong>Max 5 cameras supported</strong> • Live feed refreshes every second • Click "Full Stream" for complete video controls</small>
                             </div>
                         </div>
                     </div>
@@ -110,6 +112,7 @@
 <script>
 let cameras = [];
 let detectionIntervals = {};
+let cameraRefreshIntervals = {};
 let maxCameras = 5;
 
 document.getElementById('addCamera').addEventListener('click', addCamera);
@@ -206,13 +209,25 @@ function renderCameraGrid() {
                     </div>
                 </div>
                 <div class="card-body p-2">
-                    <div class="camera-feed-container" style="height: ${camera.active ? '200px' : '100px'};">
+                    <div class="camera-feed-container" style="height: ${camera.active ? '200px' : '100px'}; position: relative;">
                         ${camera.active ? `
-                            <iframe src="http://${fullCameraUrl}/video" 
-                                   width="100%" 
-                                   height="100%" 
-                                   style="border: none; border-radius: 4px; background: #000;">
-                            </iframe>
+                            <div style="position: relative; width: 100%; height: 100%; background: #000; border-radius: 4px; overflow: hidden;">
+                                <img src="http://${fullCameraUrl}/shot.jpg" 
+                                     id="camera-${camera.id}" 
+                                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" 
+                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OSIgZm9udC1zaXplPSIxMiI+Tm8gU2lnbmFsPC90ZXh0Pgo8L3N2Zz4='; this.style.filter='grayscale(100%)';"/>
+                                <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+                                    LIVE
+                                </div>
+                                <div style="position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+                                    ${fullCameraUrl}
+                                </div>
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+                                    <a href="http://${fullCameraUrl}" target="_blank" class="btn btn-sm btn-primary" style="opacity: 0.8;">
+                                        <i class="fas fa-external-link-alt"></i> Full Stream
+                                    </a>
+                                </div>
+                            </div>
                         ` : `
                             <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
                                 <i class="fas fa-video-slash mb-2"></i>
@@ -244,6 +259,9 @@ function startCamera(cameraId) {
     updateActiveCameraCount();
     updateDetectionStatus();
     
+    // Start camera image refresh for live feed
+    startCameraRefresh(cameraId);
+    
     // Start detection for this camera
     detectionIntervals[cameraId] = setInterval(() => {
         performDetection(camera.ip, camera.location);
@@ -265,6 +283,9 @@ function stopCamera(cameraId) {
         delete detectionIntervals[cameraId];
     }
     
+    // Stop camera refresh
+    stopCameraRefresh(cameraId);
+    
     renderCameraGrid();
     updateActiveCameraCount();
     updateDetectionStatus();
@@ -279,6 +300,9 @@ function removeCamera(cameraId) {
     if (camera && camera.active) {
         stopCamera(cameraId);
     }
+    
+    // Ensure refresh intervals are stopped
+    stopCameraRefresh(cameraId);
     
     cameras = cameras.filter(c => c.id !== cameraId);
     renderCameraGrid();
@@ -391,6 +415,29 @@ function addDetectionResult(message, type) {
     // Keep only last 15 results
     while (resultsDiv.children.length > 15) {
         resultsDiv.removeChild(resultsDiv.lastChild);
+    }
+}
+
+function startCameraRefresh(cameraId) {
+    // Refresh camera image every 1 second for live effect
+    cameraRefreshIntervals[cameraId] = setInterval(() => {
+        const camera = cameras.find(c => c.id === cameraId);
+        if (camera && camera.active) {
+            const fullCameraUrl = camera.ip.includes(':') ? camera.ip : `${camera.ip}:8080`;
+            const imgElement = document.getElementById(`camera-${cameraId}`);
+            if (imgElement) {
+                // Add timestamp to prevent caching and get fresh frame
+                const timestamp = Date.now();
+                imgElement.src = `http://${fullCameraUrl}/shot.jpg?t=${timestamp}`;
+            }
+        }
+    }, 1000); // Refresh every second
+}
+
+function stopCameraRefresh(cameraId) {
+    if (cameraRefreshIntervals[cameraId]) {
+        clearInterval(cameraRefreshIntervals[cameraId]);
+        delete cameraRefreshIntervals[cameraId];
     }
 }
 
