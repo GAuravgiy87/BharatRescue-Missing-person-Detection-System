@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Missing Persons Dashboard - Missing Person Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-list me-2"></i>Missing Persons Dashboard
+        </h1>
+        <a href="{{ url_for('register_missing') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Report Missing Person
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="missing" {% if status_filter == 'missing' %}selected{% endif %}>Missing</option>
+                        <option value="found" {% if status_filter == 'found' %}selected{% endif %}>Found</option>
+                        <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Search by Name</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ search_query }}" placeholder="Enter name to search...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cases Grid -->
+    {% if cases.items %}
+    <div class="row g-4 mb-4">
+        {% for case in cases.items %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                {% if case.photo_filename %}
+                <img src="{{ url_for('uploaded_file', filename=case.photo_filename) }}" 
+                     class="card-img-top" style="height: 250px; object-fit: cover;" 
+                     alt="{{ case.name }}">
+                {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center" 
+                     style="height: 250px; background-color: var(--bs-gray-200);">
+                    <i class="fas fa-user display-4 text-muted"></i>
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">{{ case.name }}</h5>
+                        <span class="badge bg-{{ 'success' if case.status == 'found' else 'warning' if case.status == 'missing' else 'secondary' }}">
+                            {{ case.status.title() }}
+                        </span>
+                    </div>
+                    
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>{{ case.gender }}, {{ case.age }} years old<br>
+                            <i class="fas fa-calendar me-1"></i>Last seen: {{ case.last_seen_date.strftime('%B %d, %Y') }}<br>
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ case.last_seen_location[:50] }}{% if case.last_seen_location|length > 50 %}...{% endif %}
+                        </small>
+                    </p>
+                    
+                    {% if case.description %}
+                    <p class="card-text">{{ case.description[:100] }}{% if case.description|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Case #MP-{{ "%06d"|format(case.id) }}
+                        </small>
+                        <small class="text-muted">
+                            Reported {{ case.created_at.strftime('%m/%d/%Y') }}
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="btn-group w-100" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                onclick="viewDetails({{ case.id }})">
+                            <i class="fas fa-eye me-1"></i>Details
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info" 
+                                onclick="contactInfo({{ case.id }})">
+                            <i class="fas fa-phone me-1"></i>Contact
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if cases.pages > 1 %}
+    <nav aria-label="Cases pagination">
+        <ul class="pagination justify-content-center">
+            {% if cases.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('dashboard', page=cases.prev_num, status=status_filter, search=search_query) }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in cases.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != cases.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('dashboard', page=page_num, status=status_filter, search=search_query) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if cases.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('dashboard', page=cases.next_num, status=status_filter, search=search_query) }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- No Cases Found -->
+    <div class="text-center py-5">
+        <i class="fas fa-search display-1 text-muted mb-3"></i>
+        <h3>No cases found</h3>
+        <p class="text-muted">No missing person cases match your current filters.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary me-2">
+            <i class="fas fa-refresh me-1"></i>Clear Filters
+        </a>
+        <a href="{{ url_for('register_missing') }}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-1"></i>Report Missing Person
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Case Details Modal -->
+<div class="modal fade" id="caseDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Case Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="caseDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Info Modal -->
+<div class="modal fade" id="contactInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contact Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="contactInfoContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewDetails(caseId) {
+    // Find the case data from the current page
+    const cases = {{ cases.items | tojson | safe }};
+    const caseData = cases.find(c => c.id === caseId);
+    
+    if (caseData) {
+        const content = `
+            <div class="row">
+                <div class="col-md-4">
+                    ${caseData.photo_filename ? 
+                        `<img src="/uploads/${caseData.photo_filename}" class="img-fluid rounded" alt="${caseData.name}">` :
+                        '<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fas fa-user display-4 text-muted"></i></div>'
+                    }
+                </div>
+                <div class="col-md-8">
+                    <h4>${caseData.name}</h4>
+                    <p><strong>Case ID:</strong> MP-${String(caseData.id).padStart(6, '0')}</p>
+                    <p><strong>Age:</strong> ${caseData.age} years old</p>
+                    <p><strong>Gender:</strong> ${caseData.gender}</p>
+                    <p><strong>Last Seen:</strong> ${new Date(caseData.last_seen_date).toLocaleDateString()}</p>
+                    <p><strong>Location:</strong> ${caseData.last_seen_location}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-${caseData.status === 'found' ? 'success' : caseData.status === 'missing' ? 'warning' : 'secondary'}">${caseData.status.charAt(0).toUpperCase() + caseData.status.slice(1)}</span></p>
+                    ${caseData.description ? `<p><strong>Description:</strong> ${caseData.description}</p>` : ''}
+                    <p><strong>Reported:</strong> ${new Date(caseData.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('caseDetailsContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('caseDetailsModal')).show();
+    }
+}
+
+function contactInfo(caseId) {
+    const cases = {{ cases.items | tojson | safe }};
+    const caseData = cases.find(c => c.id === caseId);
+    
+    if (caseData) {
+        const content = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Please contact local authorities first in case of emergency
+            </div>
+            <h5>Contact Person: ${caseData.contact_name}</h5>
+            <p><strong>Email:</strong> <a href="mailto:${caseData.contact_email}">${caseData.contact_email}</a></p>
+            <p><strong>Phone:</strong> <a href="tel:${caseData.contact_phone}">${caseData.contact_phone}</a></p>
+            <p><strong>Case:</strong> ${caseData.name} (MP-${String(caseData.id).padStart(6, '0')})</p>
+        `;
+        document.getElementById('contactInfoContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('contactInfoModal')).show();
+    }
+}
+</script>
+{% endblock %}

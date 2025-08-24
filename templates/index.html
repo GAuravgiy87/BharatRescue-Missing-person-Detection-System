@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Missing Person Detection System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find Missing Loved Ones</h1>
+                <p class="lead mb-4">Our advanced face recognition technology helps reunite missing persons with their families. Report a missing person or help identify someone you've seen.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{{ url_for('register_missing') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>Report Missing Person
+                    </a>
+                    <a href="{{ url_for('detection') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-camera me-2"></i>Help Identify
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-users display-1 text-white-50"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle text-warning display-4 mb-3"></i>
+                        <h3 class="card-title">{{ total_cases }}</h3>
+                        <p class="card-text">Active Missing Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-heart text-success display-4 mb-3"></i>
+                        <h3 class="card-title">{{ found_cases }}</h3>
+                        <p class="card-text">Successful Reunions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="fas fa-eye text-info display-4 mb-3"></i>
+                        <h3 class="card-title">24/7</h3>
+                        <p class="card-text">Continuous Monitoring</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-plus text-primary display-4"></i>
+                </div>
+                <h4>1. Report Missing Person</h4>
+                <p>Submit details and a clear photo of the missing person through our secure form.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="fas fa-search text-primary display-4"></i>
+                </div>
+                <h4>2. AI Recognition</h4>
+                <p>Our advanced face recognition system continuously monitors for matches.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="fas fa-bell text-primary display-4"></i>
+                </div>
+                <h4>3. Instant Alerts</h4>
+                <p>Receive immediate email notifications when a potential match is found.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Cases Section -->
+{% if recent_cases %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Recent Missing Persons</h2>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">View All Cases</a>
+        </div>
+        <div class="row g-4">
+            {% for case in recent_cases %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+                    {% if case.photo_filename %}
+                    <img src="{{ url_for('uploaded_file', filename=case.photo_filename) }}" 
+                         class="card-img-top" style="height: 250px; object-fit: cover;" 
+                         alt="{{ case.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ case.name }}</h5>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Last seen: {{ case.last_seen_date.strftime('%B %d, %Y') }}<br>
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ case.last_seen_location }}<br>
+                                <i class="fas fa-user me-1"></i>{{ case.gender }}, {{ case.age }} years old
+                            </small>
+                        </p>
+                        {% if case.description %}
+                        <p class="card-text">{{ case.description[:100] }}{% if case.description|length > 100 %}...{% endif %}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>Reported {{ case.created_at.strftime('%B %d, %Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Help Make a Difference</h2>
+        <p class="lead mb-4">Every report and identification attempt brings us closer to reuniting families. Your contribution matters.</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ url_for('register_missing') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>Report a Missing Person
+            </a>
+            <a href="{{ url_for('detection') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-camera me-2"></i>Help Identify Someone
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

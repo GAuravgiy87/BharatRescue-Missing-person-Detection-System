@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Face Detection - Missing Person Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1>
+            <i class="fas fa-camera me-2"></i>Face Detection
+        </h1>
+        <p class="lead">Upload a photo to check if it matches any missing person in our database</p>
+    </div>
+
+    <!-- Detection Form -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Upload Photo for Detection</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="detectionForm">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="detection_photo" class="form-label">Photo to Analyze *</label>
+                                <input type="file" class="form-control" id="detection_photo" name="detection_photo" 
+                                       accept="image/png,image/jpeg,image/jpg,image/gif" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Upload a clear photo showing the person's face. Our AI will compare it against all missing persons.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div id="photoPreview" class="mt-3" style="display: none;">
+                                    <img id="previewImage" src="" alt="Photo Preview" class="img-thumbnail" style="max-width: 400px;">
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="location" class="form-label">Location (Optional)</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       placeholder="Where was this photo taken? (e.g., Downtown Mall, 5th Street)">
+                                <div class="form-text">This helps authorities locate the person if a match is found</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    <strong>Privacy Notice:</strong> Uploaded photos are used only for matching and are automatically deleted after processing. No images are stored permanently.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-search me-2"></i>Analyze Photo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detection Results -->
+    {% if matches %}
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Potential Matches Found!
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> If you recognize any of these individuals, please contact local authorities immediately. Do not approach them directly.
+                    </div>
+                    
+                    <div class="row g-4">
+                        {% for match in matches %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-success">
+                                {% if match.person.photo_filename %}
+                                <img src="{{ url_for('uploaded_file', filename=match.person.photo_filename) }}" 
+                                     class="card-img-top" style="height: 250px; object-fit: cover;" 
+                                     alt="{{ match.person.name }}">
+                                {% endif %}
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ match.person.name }}</h5>
+                                    
+                                    <!-- Confidence Score -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Match Confidence:</label>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-{{ 'success' if match.confidence > 0.8 else 'warning' if match.confidence > 0.6 else 'info' }}" 
+                                                 role="progressbar" style="width: {{ (match.confidence * 100)|round }}%">
+                                                {{ (match.confidence * 100)|round }}%
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">
+                                            {% if match.confidence > 0.8 %}
+                                                Very High Confidence
+                                            {% elif match.confidence > 0.6 %}
+                                                High Confidence
+                                            {% else %}
+                                                Medium Confidence
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    
+                                    <p class="card-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>{{ match.person.gender }}, {{ match.person.age }} years old<br>
+                                            <i class="fas fa-calendar me-1"></i>Last seen: {{ match.person.last_seen_date.strftime('%B %d, %Y') }}<br>
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ match.person.last_seen_location[:50] }}{% if match.person.last_seen_location|length > 50 %}...{% endif %}
+                                        </small>
+                                    </p>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success" onclick="reportSighting({{ match.person.id }})">
+                                            <i class="fas fa-phone me-1"></i>Report Sighting
+                                        </button>
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewFullDetails({{ match.person.id }})">
+                                            <i class="fas fa-eye me-1"></i>View Full Details
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        Case #MP-{{ "%06d"|format(match.person.id) }} | 
+                                        Reported {{ match.person.created_at.strftime('%m/%d/%Y') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- How Detection Works -->
+    <div class="row justify-content-center mt-5">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>How Face Detection Works
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-upload text-primary display-4 mb-3"></i>
+                            <h5>1. Upload Photo</h5>
+                            <p>Upload a clear photo containing the person's face you want to identify.</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-brain text-primary display-4 mb-3"></i>
+                            <h5>2. AI Analysis</h5>
+                            <p>Our advanced AI compares facial features against all missing persons in the database.</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-bell text-primary display-4 mb-3"></i>
+                            <h5>3. Instant Results</h5>
+                            <p>Receive immediate results with confidence scores and automatic alerts to families.</p>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success me-2"></i>Best Practices:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right me-2"></i>Use well-lit photos</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>Ensure face is clearly visible</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>Avoid heavy shadows or filters</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>Front-facing angles work best</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-shield-alt text-info me-2"></i>Privacy & Security:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right me-2"></i>Photos are processed locally</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>No images stored permanently</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>Automated deletion after analysis</li>
+                                <li><i class="fas fa-arrow-right me-2"></i>Secure encrypted transmission</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Sighting Modal -->
+<div class="modal fade" id="reportSightingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Report Sighting</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="reportSightingContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full Details Modal -->
+<div class="modal fade" id="fullDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Missing Person Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="fullDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('detection_photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+});
+
+function reportSighting(personId) {
+    {% if matches %}
+    const matches = {{ matches | tojson | safe }};
+    const match = matches.find(m => m.person.id === personId);
+    
+    if (match) {
+        const content = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Emergency:</strong> If this is an immediate emergency, call 911 first.
+            </div>
+            <h5>Contact Information for ${match.person.name}</h5>
+            <p><strong>Contact Person:</strong> ${match.person.contact_name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${match.person.contact_email}">${match.person.contact_email}</a></p>
+            <p><strong>Phone:</strong> <a href="tel:${match.person.contact_phone}">${match.person.contact_phone}</a></p>
+            <p><strong>Case ID:</strong> MP-${String(match.person.id).padStart(6, '0')}</p>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                The family has been automatically notified of this potential sighting. Please provide your contact information when calling.
+            </div>
+        `;
+        document.getElementById('reportSightingContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('reportSightingModal')).show();
+    }
+    {% endif %}
+}
+
+function viewFullDetails(personId) {
+    {% if matches %}
+    const matches = {{ matches | tojson | safe }};
+    const match = matches.find(m => m.person.id === personId);
+    
+    if (match) {
+        const person = match.person;
+        const content = `
+            <div class="row">
+                <div class="col-md-4">
+                    ${person.photo_filename ? 
+                        `<img src="/uploads/${person.photo_filename}" class="img-fluid rounded" alt="${person.name}">` :
+                        '<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fas fa-user display-4 text-muted"></i></div>'
+                    }
+                </div>
+                <div class="col-md-8">
+                    <h4>${person.name}</h4>
+                    <p><strong>Case ID:</strong> MP-${String(person.id).padStart(6, '0')}</p>
+                    <p><strong>Age:</strong> ${person.age} years old</p>
+                    <p><strong>Gender:</strong> ${person.gender}</p>
+                    <p><strong>Last Seen:</strong> ${new Date(person.last_seen_date).toLocaleDateString()}</p>
+                    <p><strong>Location:</strong> ${person.last_seen_location}</p>
+                    <p><strong>Match Confidence:</strong> ${Math.round(match.confidence * 100)}%</p>
+                    ${person.description ? `<p><strong>Description:</strong> ${person.description}</p>` : ''}
+                    <p><strong>Reported:</strong> ${new Date(person.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('fullDetailsContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('fullDetailsModal')).show();
+    }
+    {% endif %}
+}
+</script>
+{% endblock %}
