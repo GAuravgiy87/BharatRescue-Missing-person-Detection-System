@@ -45,9 +45,9 @@
     </div>
 
     <!-- Cases Grid -->
-    {% if cases.items %}
+    {% if cases %}
     <div class="row g-4 mb-4">
-        {% for case in cases.items %}
+        {% for case in cases %}
         <div class="col-md-6 col-lg-4">
             <div class="card h-100">
                 {% if case.photo_filename %}
@@ -202,7 +202,7 @@
 <script>
 function viewDetails(caseId) {
     // Find the case data from the current page
-    const cases = {{ cases.items | tojson | safe }};
+    const cases = {{ cases | tojson | safe }};
     const caseData = cases.find(c => c.id === caseId);
     
     if (caseData) {

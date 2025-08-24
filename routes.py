@@ -112,11 +112,31 @@ def dashboard():
     if search_query:
         query = query.filter(MissingPerson.name.contains(search_query))
     
-    cases = query.order_by(MissingPerson.created_at.desc()).paginate(
+    cases_query = query.order_by(MissingPerson.created_at.desc()).paginate(
         page=page, per_page=12, error_out=False
     )
     
-    return render_template('dashboard.html', cases=cases, status_filter=status_filter, search_query=search_query)
+    # Convert cases to dictionaries for JSON serialization
+    cases_data = []
+    for case in cases_query.items:
+        case_dict = {
+            'id': case.id,
+            'name': case.name,
+            'age': case.age,
+            'gender': case.gender,
+            'last_seen_location': case.last_seen_location,
+            'last_seen_date': case.last_seen_date.isoformat() if case.last_seen_date else None,
+            'description': case.description,
+            'status': case.status,
+            'photo_filename': case.photo_filename,
+            'contact_name': case.contact_name,
+            'contact_email': case.contact_email,
+            'contact_phone': case.contact_phone,
+            'created_at': case.created_at.isoformat() if case.created_at else None
+        }
+        cases_data.append(case_dict)
+    
+    return render_template('dashboard.html', cases=cases_data, cases_pagination=cases_query, status_filter=status_filter, search_query=search_query)
 
 @app.route('/detection', methods=['GET', 'POST'])
 def detection():
