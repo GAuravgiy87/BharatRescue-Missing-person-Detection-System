@@ -349,9 +349,9 @@ def surveillance_detect():
         # Enhanced face detection simulation - higher chance when camera is active
         import random
         
-        # 5% chance of detecting a match when actively monitoring (reduced to prevent false positives)
+        # 30% chance of detecting a match when actively monitoring (faster detection)
         # In a real system, this would process actual camera frames with face_recognition
-        if random.random() < 0.05 and missing_persons:
+        if random.random() < 0.30 and missing_persons:
             # Randomly select a missing person for simulation
             detected_person = random.choice(missing_persons)
             confidence = random.uniform(0.6, 0.95)  # High confidence match
@@ -460,6 +460,87 @@ def reset_all_to_missing():
     except Exception as e:
         logging.error(f"Error resetting cases: {str(e)}")
         return jsonify({'error': 'Failed to reset cases'}), 500
+
+@app.route('/admin/delete_found_cases', methods=['POST'])
+def delete_found_cases():
+    """Delete all found cases from the database"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        # Get all found cases
+        found_cases = MissingPerson.query.filter_by(status='found').all()
+        count = 0
+        
+        for case in found_cases:
+            # Delete associated detections first
+            Detection.query.filter_by(missing_person_id=case.id).delete()
+            
+            # Delete photo file if exists
+            if case.photo_filename:
+                photo_path = os.path.join(app.config['UPLOAD_FOLDER'], case.photo_filename)
+                if os.path.exists(photo_path):
+                    try:
+                        os.remove(photo_path)
+                        logging.info(f"Deleted photo file: {photo_path}")
+                    except Exception as e:
+                        logging.warning(f"Could not delete photo {photo_path}: {str(e)}")
+            
+            # Delete the case
+            db.session.delete(case)
+            count += 1
+        
+        db.session.commit()
+        
+        logging.info(f"ADMIN ACTION: Permanently deleted {count} found cases from database")
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Permanently deleted {count} found cases',
+            'count': count
+        })
+        
+    except Exception as e:
+        logging.error(f"Error deleting found cases: {str(e)}")
+        return jsonify({'error': 'Failed to delete found cases'}), 500
+
+@app.route('/admin/delete_case/<int:case_id>', methods=['POST'])
+def delete_single_case(case_id):
+    """Delete a single case"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        case = MissingPerson.query.get_or_404(case_id)
+        
+        # Delete associated detections first
+        Detection.query.filter_by(missing_person_id=case.id).delete()
+        
+        # Delete photo file if exists
+        if case.photo_filename:
+            photo_path = os.path.join(app.config['UPLOAD_FOLDER'], case.photo_filename)
+            if os.path.exists(photo_path):
+                try:
+                    os.remove(photo_path)
+                    logging.info(f"Deleted photo file: {photo_path}")
+                except Exception as e:
+                    logging.warning(f"Could not delete photo {photo_path}: {str(e)}")
+        
+        # Delete the case
+        case_name = case.name
+        db.session.delete(case)
+        db.session.commit()
+        
+        logging.info(f"ADMIN ACTION: Deleted case {case_name} (ID: {case_id})")
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Case {case_name} deleted successfully'
+        })
+        
+    except Exception as e:
+        logging.error(f"Error deleting case {case_id}: {str(e)}")
+        return jsonify({'error': 'Failed to delete case'}), 500
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):

@@ -33,10 +33,12 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Email configuration for Gmail
+# NOTE: You need to generate an App Password from Google Account settings
+# Go to: Google Account > Security > 2-Step Verification > App passwords
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = 'gauravchauhan292005@gmail.com'
-app.config['MAIL_PASSWORD'] = 'GauravChauhan0927'  # Your Gmail password
+app.config['MAIL_PASSWORD'] = 'GauravChauhan0927'  # REPLACE WITH APP PASSWORD FROM GOOGLE
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_DEFAULT_SENDER'] = 'gauravchauhan292005@gmail.com'
