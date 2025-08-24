@@ -19,32 +19,62 @@ def send_detection_alert(missing_person, detection):
         """
         
         body = f"""
+        URGENT ALERT - MISSING PERSON DETECTED
+
         Dear {missing_person.contact_name},
 
-        We have detected a potential match for {missing_person.name} who was reported missing.
+        🚨 IMPORTANT: We have detected a potential match for {missing_person.name} who was reported missing.
 
-        {status_message}Detection Details:
-        - Person: {missing_person.name}
-        - Age: {missing_person.age}
-        - Gender: {missing_person.gender}
-        - Detection Time: {detection.detection_time or 'Just now'}
-        - Location: {detection.detected_location or 'Location not specified'}
-        - Confidence Score: {detection.confidence_score:.2%}
-        - Case Status: {missing_person.status.upper()}
+        {status_message}DETECTION DETAILS:
+        ==================
+        📍 Location: {detection.detected_location or 'Location not specified'}
+        🕐 Detection Time: {detection.detection_time or 'Just now'}
+        📊 Match Confidence: {detection.confidence_score:.1%}
+        🆔 Case ID: MP-{missing_person.id:06d}
+        📋 Current Status: {missing_person.status.upper()}
 
-        Original Report Details:
-        - Last Seen: {missing_person.last_seen_location}
-        - Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
-        - Contact Phone: {missing_person.contact_phone}
+        MISSING PERSON INFORMATION:
+        ==========================
+        👤 Name: {missing_person.name}
+        📅 Age: {missing_person.age} years old
+        ⚥ Gender: {missing_person.gender}
+        🏠 Last Known Location: {missing_person.last_seen_location}
+        📆 Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
+        📝 Description: {missing_person.description or 'No additional description'}
 
-        Please contact local authorities immediately if this is indeed {missing_person.name}.
-        
-        If this detection is incorrect, please contact us immediately to update the case status.
+        IMMEDIATE ACTION REQUIRED:
+        =========================
+        1. 🚓 Contact local police immediately: 100 (Emergency) or 1091 (Women Helpline)
+        2. 📞 Contact the detection location if known
+        3. 🚗 Consider going to the detected location safely
+        4. 📧 Reply to this email to confirm if this is correct
 
-        This is an automated alert from the Missing Person Detection System.
-        
+        CONTACT INFORMATION:
+        ===================
+        📧 Your Email: {missing_person.contact_email}
+        📱 Your Phone: {missing_person.contact_phone}
+        🆔 Aadhar: {missing_person.aadhar_number or 'Not provided'}
+
+        IMPORTANT NOTES:
+        ===============
+        • This detection was made using advanced face recognition technology
+        • False positives are possible - please verify before taking action
+        • If this is NOT {missing_person.name}, please inform us immediately
+        • Keep this information confidential until verified
+
+        SYSTEM INFORMATION:
+        ==================
+        Detection Source: Missing Person Detection System
+        Alert Generated: Automatically upon detection
+        System Contact: gauravchauhan292005@gmail.com
+
+        We are committed to reuniting missing persons with their families safely.
+
+        Stay hopeful and take immediate action.
+
         Best regards,
         Missing Person Detection Team
+        Automated Alert System
         """
         
         # Send to both the family contact and system admin
@@ -72,31 +102,73 @@ def send_registration_confirmation(missing_person):
         subject = f"Missing Person Report Registered - {missing_person.name}"
         
         body = f"""
+        MISSING PERSON REPORT SUCCESSFULLY REGISTERED
+
         Dear {missing_person.contact_name},
 
-        Your missing person report has been successfully registered in our system.
+        ✅ Your missing person report has been successfully registered in our system.
 
-        Report Details:
-        - Case ID: MP-{missing_person.id:06d}
-        - Person: {missing_person.name}
-        - Age: {missing_person.age}
-        - Gender: {missing_person.gender}
-        - Last Seen: {missing_person.last_seen_location}
-        - Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
-        - Registration Date: {missing_person.created_at or 'Just now'}
+        CASE INFORMATION:
+        ================
+        🆔 Case ID: MP-{missing_person.id:06d}
+        👤 Missing Person: {missing_person.name}
+        📅 Age: {missing_person.age} years old
+        ⚥ Gender: {missing_person.gender}
+        🏠 Last Seen Location: {missing_person.last_seen_location}
+        📆 Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
+        📝 Description: {missing_person.description or 'No additional description'}
+        ⏰ Report Registered: {missing_person.created_at or 'Just now'}
 
-        Our face recognition system is now actively monitoring for {missing_person.name}. 
-        You will receive an immediate email alert if a potential match is detected.
+        CONTACT DETAILS ON FILE:
+        =======================
+        📧 Email: {missing_person.contact_email}
+        📱 Phone: {missing_person.contact_phone}
+        🆔 Aadhar: {missing_person.aadhar_number or 'Not provided'}
 
-        Important reminders:
-        - Contact local police authorities
-        - Keep your contact information updated
-        - Notify us immediately if {missing_person.name} is found
+        WHAT HAPPENS NEXT:
+        =================
+        🔍 Our advanced face recognition system is now actively monitoring for {missing_person.name}
+        📧 You will receive IMMEDIATE email alerts for any potential matches
+        📊 Detection confidence scores help determine likelihood of matches
+        🚨 High-confidence matches (>50%) automatically trigger urgent alerts
 
-        We are committed to helping reunite missing persons with their families.
+        IMMEDIATE ACTIONS YOU SHOULD TAKE:
+        =================================
+        1. 🚓 File a formal police complaint immediately
+        2. 📢 Share this information with local community groups
+        3. 📱 Post on social media with #{missing_person.name}Missing hashtag
+        4. 📋 Contact local hospitals and shelters
+        5. 🗞️ Consider contacting local news media
+
+        IMPORTANT EMERGENCY CONTACTS:
+        ============================
+        🚨 Police Emergency: 100
+        👩‍⚕️ Women Helpline: 1091
+        🧒 Child Helpline: 1098
+        🆘 Disaster Management: 108
+
+        SYSTEM FEATURES:
+        ===============
+        • 24/7 automated face recognition monitoring
+        • Real-time alert system via email
+        • Database accessible to authorities
+        • Privacy-protected secure system
+
+        IMPORTANT REMINDERS:
+        ===================
+        ⚠️ Keep your contact information updated
+        ⚠️ Notify us IMMEDIATELY if {missing_person.name} is found
+        ⚠️ Respond to detection alerts quickly for best results
+        ⚠️ Share case ID: MP-{missing_person.id:06d} with authorities
+
+        We understand this is a difficult time for your family. Our system works around the clock to help locate missing persons and reunite families.
+
+        Stay strong and don't lose hope.
 
         Best regards,
         Missing Person Detection Team
+        Email: gauravchauhan292005@gmail.com
+        Case Reference: MP-{missing_person.id:06d}
         """
         
         # Send to both the family contact and system admin
