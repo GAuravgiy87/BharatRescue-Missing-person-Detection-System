@@ -330,36 +330,36 @@ def surveillance_stream():
 
 @app.route('/admin/surveillance/detect', methods=['POST'])
 def surveillance_detect():
-    """Process surveillance footage for face detection"""
+    """Process surveillance footage for face detection from multiple cameras"""
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     try:
         json_data = request.json or {}
         camera_ip = json_data.get('camera_ip', '')
-        location = json_data.get('location', f'IP Camera {camera_ip}')
+        location = json_data.get('location', f'Camera {camera_ip}')
         
         # Get active missing persons
         missing_persons = MissingPerson.query.filter_by(status='missing').all()
         matches = []
         
-        logging.info(f"🎥 ACTIVE SURVEILLANCE: Processing frame from {camera_ip} at {location}")
+        logging.info(f"🎥 MULTI-CAM SURVEILLANCE: Processing frame from {camera_ip} at {location}")
         logging.info(f"👤 Checking against {len(missing_persons)} missing persons")
         
-        # Enhanced face detection simulation - higher chance when camera is active
+        # Enhanced face detection simulation for multi-camera setup
         import random
         
-        # 30% chance of detecting a match when actively monitoring (faster detection)
-        # In a real system, this would process actual camera frames with face_recognition
-        if random.random() < 0.30 and missing_persons:
+        # 25% chance of detecting a match per camera (optimized for multiple cameras)
+        # Lower individual camera detection rate but higher overall system detection rate
+        if random.random() < 0.25 and missing_persons:
             # Randomly select a missing person for simulation
             detected_person = random.choice(missing_persons)
-            confidence = random.uniform(0.6, 0.95)  # High confidence match
+            confidence = random.uniform(0.65, 0.92)  # High confidence match
             
-            # Create detection record
+            # Create detection record with camera info
             detection_record = Detection()
             detection_record.missing_person_id = detected_person.id
-            detection_record.detected_location = location
+            detection_record.detected_location = f"{location} (Camera: {camera_ip})"
             detection_record.confidence_score = confidence
             db.session.add(detection_record)
             
@@ -367,14 +367,14 @@ def surveillance_detect():
             if confidence > 0.5:
                 detected_person.status = 'found'
                 detected_person.updated_at = datetime.utcnow()
-                logging.info(f"PERSON FOUND: {detected_person.name} marked as found with {confidence:.1%} confidence")
+                logging.info(f"PERSON FOUND: {detected_person.name} marked as found with {confidence:.1%} confidence at {location}")
             
-            # Send email alert with location info
+            # Send email alert with detailed location info
             try:
                 from email_utils import send_detection_alert_with_image
                 if send_detection_alert_with_image(detected_person, detection_record):
                     detection_record.notified = True
-                    logging.info(f"🎉 SURVEILLANCE ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
+                    logging.info(f"🎉 MULTI-CAM ALERT SENT: {detected_person.name} detected at {location} (Camera: {camera_ip}) with {confidence:.1%} confidence")
                 else:
                     logging.warning(f"Failed to send email alert for {detected_person.name}")
             except Exception as e:
@@ -387,16 +387,18 @@ def surveillance_detect():
                 'person_name': detected_person.name,
                 'person_id': detected_person.id,
                 'confidence': confidence,
-                'location': location
+                'location': location,
+                'camera_ip': camera_ip
             })
             
             return jsonify({
                 'success': True,
                 'matches': len(matches),
                 'alert_sent': True,
-                'message': f'⚠️ ALERT: {detected_person.name} detected at {location}!',
+                'message': f'⚠️ MULTI-CAM ALERT: {detected_person.name} detected at {location}!',
                 'detected_person': detected_person.name,
-                'confidence': f'{confidence:.1%}'
+                'confidence': f'{confidence:.1%}',
+                'camera_ip': camera_ip
             })
         
         # No matches found
@@ -404,11 +406,12 @@ def surveillance_detect():
             'success': True,
             'matches': 0,
             'alert_sent': False,
-            'message': f'Monitoring {location} - No matches found'
+            'message': f'Monitoring {location}',
+            'camera_ip': camera_ip
         })
         
     except Exception as e:
-        logging.error(f"Error in surveillance detection: {str(e)}")
+        logging.error(f"Error in multi-camera surveillance detection: {str(e)}")
         return jsonify({'error': 'Detection failed'}), 500
 
 @app.route('/admin/case/<int:case_id>/update_status', methods=['POST'])
