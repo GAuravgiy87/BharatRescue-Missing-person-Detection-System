@@ -413,6 +413,36 @@ def update_case_status(case_id):
     
     return jsonify({'success': True, 'message': f'Case status updated to {new_status}'})
 
+@app.route('/admin/reset_all_to_missing', methods=['POST'])
+def reset_all_to_missing():
+    """Reset all found cases back to missing status"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        # Reset all found cases back to missing
+        found_cases = MissingPerson.query.filter_by(status='found').all()
+        count = 0
+        
+        for case in found_cases:
+            case.status = 'missing'
+            case.updated_at = datetime.utcnow()
+            count += 1
+        
+        db.session.commit()
+        
+        logging.info(f"ADMIN ACTION: Reset {count} cases from 'found' back to 'missing' status")
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Reset {count} cases back to missing status',
+            'count': count
+        })
+        
+    except Exception as e:
+        logging.error(f"Error resetting cases: {str(e)}")
+        return jsonify({'error': 'Failed to reset cases'}), 500
+
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     """Serve uploaded files"""

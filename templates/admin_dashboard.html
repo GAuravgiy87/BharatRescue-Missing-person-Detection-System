@@ -140,7 +140,7 @@
                     </a>
                 </div>
             </div>
-            
+
             <div class="row g-3">
                 <div class="col-md-4">
                     <a href="{{ url_for('detection') }}" class="btn btn-primary w-100">
@@ -211,6 +211,29 @@ function updateCaseStatus(caseId, status) {
         .catch(error => {
             console.error('Error:', error);
             alert('An error occurred while updating the case status.');
+        });
+    }
+}
+
+function resetAllToMissing() {
+    if (confirm('Are you sure you want to reset ALL found cases back to missing status? This will allow them to be detected again.')) {
+        fetch('/admin/reset_all_to_missing', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully reset ${data.count} cases back to missing status`);
+                location.reload();
+            } else {
+                alert('Error resetting cases');
+            }
+        })
+        .catch(error => {
+            alert('Error resetting cases');
         });
     }
 }
