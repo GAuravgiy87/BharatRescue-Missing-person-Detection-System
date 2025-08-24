@@ -136,7 +136,7 @@ def dashboard():
         }
         cases_data.append(case_dict)
     
-    return render_template('dashboard.html', cases=cases_data, cases_pagination=cases_query, status_filter=status_filter, search_query=search_query)
+    return render_template('dashboard.html', cases=cases_query, cases_data=cases_data, status_filter=status_filter, search_query=search_query)
 
 @app.route('/detection', methods=['GET', 'POST'])
 def detection():
