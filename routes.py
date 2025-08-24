@@ -172,7 +172,7 @@ def detection():
                         
                         logging.info(f"Result for {person.name}: Match={is_match}, Confidence={confidence:.1%}")
                         
-                        if is_match and confidence > 0.35:  # Lower threshold for better detection
+                        if is_match and confidence > 0.30:  # Even lower threshold for better detection
                             matches.append({
                                 'person': person,
                                 'confidence': confidence
@@ -187,8 +187,8 @@ def detection():
                             detection_record.confidence_score = confidence
                             db.session.add(detection_record)
                             
-                            # Send alert email and mark as found if confidence is over 45%
-                            if confidence > 0.45:
+                            # Send alert email and mark as found if confidence is over 40%
+                            if confidence > 0.40:
                                 # Mark person as found
                                 person.status = 'found'
                                 person.updated_at = datetime.utcnow()
@@ -205,8 +205,8 @@ def detection():
                                     logging.error(f"❌ EMAIL FAILED: Could not send alert for {person.name}")
                                     
                                 logging.info(f"PERSON FOUND: {person.name} marked as found with {confidence:.1%} confidence at {location}")
-                            elif confidence > 0.35:
-                                # Still send alert for potential matches above 40%
+                            elif confidence > 0.30:
+                                # Still send alert for potential matches above 30%
                                 detection_image_path = filepath
                                 from email_utils import send_detection_alert_with_image
                                 if send_detection_alert_with_image(person, detection_record, detection_image_path):
