@@ -184,10 +184,10 @@ function connectToCamera(ip, location) {
     
     isConnected = true;
     
-    // Start detection simulation (every 10 seconds for more frequent monitoring)
+    // Start detection simulation (every 5 seconds for immediate testing)
     detectionInterval = setInterval(() => {
         performDetection(ip, location);
-    }, 10000);
+    }, 5000);
     
     // Show success message
     addDetectionResult(`Connected to camera at ${ip} (${location})`, 'success');

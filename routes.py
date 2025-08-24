@@ -314,14 +314,15 @@ def surveillance_detect():
         missing_persons = MissingPerson.query.filter_by(status='missing').all()
         matches = []
         
-        logging.info(f"Processing surveillance frame from {camera_ip} at {location}")
-        logging.info(f"Checking against {len(missing_persons)} missing persons")
+        logging.info(f"🎥 ACTIVE SURVEILLANCE: Processing frame from {camera_ip} at {location}")
+        logging.info(f"👤 Checking against {len(missing_persons)} missing persons")
         
-        # Simulate face detection with realistic probability
+        # Enhanced face detection simulation - higher chance when camera is active
         import random
         
-        # 5% chance of detecting a match (for demonstration)
-        if random.random() < 0.05 and missing_persons:
+        # 30% chance of detecting a match when actively monitoring (increased for testing)
+        # In a real system, this would process actual camera frames with face_recognition
+        if random.random() < 0.30 and missing_persons:
             # Randomly select a missing person for simulation
             detected_person = random.choice(missing_persons)
             confidence = random.uniform(0.6, 0.95)  # High confidence match
