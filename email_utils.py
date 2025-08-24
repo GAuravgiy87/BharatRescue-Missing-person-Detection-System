@@ -18,13 +18,13 @@ def send_detection_alert(missing_person, detection):
         - Person: {missing_person.name}
         - Age: {missing_person.age}
         - Gender: {missing_person.gender}
-        - Detection Time: {detection.detection_time.strftime('%Y-%m-%d %H:%M:%S')}
+        - Detection Time: {detection.detection_time or 'Just now'}
         - Location: {detection.detected_location or 'Location not specified'}
         - Confidence Score: {detection.confidence_score:.2%}
 
         Original Report Details:
         - Last Seen: {missing_person.last_seen_location}
-        - Last Seen Date: {missing_person.last_seen_date}
+        - Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
         - Contact Phone: {missing_person.contact_phone}
 
         Please contact local authorities immediately if this is indeed {missing_person.name}.
@@ -70,8 +70,8 @@ def send_registration_confirmation(missing_person):
         - Age: {missing_person.age}
         - Gender: {missing_person.gender}
         - Last Seen: {missing_person.last_seen_location}
-        - Last Seen Date: {missing_person.last_seen_date}
-        - Registration Date: {missing_person.created_at.strftime('%Y-%m-%d %H:%M:%S')}
+        - Last Seen Date: {missing_person.last_seen_date or 'Not specified'}
+        - Registration Date: {missing_person.created_at or 'Just now'}
 
         Our face recognition system is now actively monitoring for {missing_person.name}. 
         You will receive an immediate email alert if a potential match is detected.

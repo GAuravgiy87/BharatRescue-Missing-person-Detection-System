@@ -307,8 +307,9 @@ def surveillance_detect():
         return jsonify({'error': 'Unauthorized'}), 401
     
     try:
-        camera_ip = request.json.get('camera_ip', '')
-        location = request.json.get('location', f'IP Camera {camera_ip}')
+        json_data = request.json or {}
+        camera_ip = json_data.get('camera_ip', '')
+        location = json_data.get('location', f'IP Camera {camera_ip}')
         
         # Get active missing persons
         missing_persons = MissingPerson.query.filter_by(status='missing').all()
@@ -376,13 +377,12 @@ def surveillance_detect():
         return jsonify({'error': 'Detection failed'}), 500
 
 @app.route('/admin/case/<int:case_id>/update_status', methods=['POST'])
-def update_case_status():
+def update_case_status(case_id):
     """Update case status"""
     if 'admin_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
     json_data = request.get_json() or {}
-    case_id = json_data.get('case_id')
     new_status = json_data.get('status')
     
     if new_status not in ['missing', 'found', 'closed']:
