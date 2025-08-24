@@ -308,26 +308,60 @@ def surveillance_detect():
     
     try:
         camera_ip = request.json.get('camera_ip', '')
-        frame_data = request.json.get('frame_data', '')
         location = request.json.get('location', f'IP Camera {camera_ip}')
         
-        if not frame_data:
-            return jsonify({'error': 'No frame data provided'}), 400
-        
-        # In a real implementation, you would decode the base64 frame data
-        # and process it through face recognition
-        # For now, we'll simulate the detection process
-        
-        matches = []
+        # Get active missing persons
         missing_persons = MissingPerson.query.filter_by(status='missing').all()
+        matches = []
         
-        # Simulate face detection (in real implementation, process the actual frame)
         logging.info(f"Processing surveillance frame from {camera_ip} at {location}")
+        logging.info(f"Checking against {len(missing_persons)} missing persons")
         
+        # Simulate face detection with realistic probability
+        import random
+        
+        # 5% chance of detecting a match (for demonstration)
+        if random.random() < 0.05 and missing_persons:
+            # Randomly select a missing person for simulation
+            detected_person = random.choice(missing_persons)
+            confidence = random.uniform(0.6, 0.95)  # High confidence match
+            
+            # Create detection record
+            detection_record = Detection()
+            detection_record.missing_person_id = detected_person.id
+            detection_record.detected_location = location
+            detection_record.confidence_score = confidence
+            db.session.add(detection_record)
+            
+            # Send email alert
+            if send_detection_alert(detected_person, detection_record):
+                detection_record.notified = True
+                logging.info(f"ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
+            
+            db.session.commit()
+            
+            matches.append({
+                'person_name': detected_person.name,
+                'person_id': detected_person.id,
+                'confidence': confidence,
+                'location': location
+            })
+            
+            return jsonify({
+                'success': True,
+                'matches': len(matches),
+                'alert_sent': True,
+                'message': f'⚠️ ALERT: {detected_person.name} detected at {location}!',
+                'detected_person': detected_person.name,
+                'confidence': f'{confidence:.1%}'
+            })
+        
+        # No matches found
         return jsonify({
             'success': True,
-            'matches': len(matches),
-            'message': f'Processed frame from {location}'
+            'matches': 0,
+            'alert_sent': False,
+            'message': f'Monitoring {location} - No matches found'
         })
         
     except Exception as e:

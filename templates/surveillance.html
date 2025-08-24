@@ -179,10 +179,10 @@ function connectToCamera(ip, location) {
     
     isConnected = true;
     
-    // Start detection simulation (every 30 seconds)
+    // Start detection simulation (every 10 seconds for more frequent monitoring)
     detectionInterval = setInterval(() => {
         performDetection(ip, location);
-    }, 30000);
+    }, 10000);
     
     // Show success message
     addDetectionResult(`Connected to camera at ${ip} (${location})`, 'success');
@@ -222,18 +222,27 @@ function performDetection(cameraIP, location) {
         },
         body: JSON.stringify({
             camera_ip: cameraIP,
-            location: location,
-            frame_data: 'simulated_frame_data' // In real implementation, this would be base64 encoded frame
+            location: location
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             const timestamp = new Date().toLocaleString();
-            addDetectionResult(`${timestamp} - ${data.message}`, 'info');
             
-            if (data.matches > 0) {
-                addDetectionResult(`⚠️ ALERT: ${data.matches} potential match(es) found!`, 'danger');
+            if (data.alert_sent) {
+                // High priority alert
+                addDetectionResult(`🚨 MISSING PERSON DETECTED! ${data.detected_person} found at ${location} (${data.confidence})`, 'danger');
+                addDetectionResult(`📧 Email alert sent to gauravchauhan292005@gmail.com`, 'success');
+                
+                // Play alert sound if possible
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoT');
+                    audio.play().catch(() => {}); // Silent fail
+                } catch(e) {}
+                
+            } else {
+                addDetectionResult(`${timestamp} - ${data.message}`, 'info');
             }
         }
     })
