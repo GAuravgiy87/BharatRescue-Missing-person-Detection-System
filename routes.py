@@ -257,6 +257,63 @@ def admin_dashboard():
                          found_cases=found_cases,
                          recent_detections=recent_detections)
 
+@app.route('/admin/surveillance')
+def admin_surveillance():
+    """Surveillance system for IP cameras"""
+    if 'admin_id' not in session:
+        flash('Please log in to access surveillance system', 'error')
+        return redirect(url_for('admin_login'))
+    
+    return render_template('surveillance.html')
+
+@app.route('/admin/surveillance/stream')
+def surveillance_stream():
+    """IP camera stream endpoint"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    camera_ip = request.args.get('ip', '')
+    if not camera_ip:
+        return jsonify({'error': 'No camera IP provided'}), 400
+    
+    # Return camera stream URL for mobile IP camera apps
+    stream_url = f"http://{camera_ip}:8080/video"
+    return jsonify({'stream_url': stream_url})
+
+@app.route('/admin/surveillance/detect', methods=['POST'])
+def surveillance_detect():
+    """Process surveillance footage for face detection"""
+    if 'admin_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        camera_ip = request.json.get('camera_ip', '')
+        frame_data = request.json.get('frame_data', '')
+        location = request.json.get('location', f'IP Camera {camera_ip}')
+        
+        if not frame_data:
+            return jsonify({'error': 'No frame data provided'}), 400
+        
+        # In a real implementation, you would decode the base64 frame data
+        # and process it through face recognition
+        # For now, we'll simulate the detection process
+        
+        matches = []
+        missing_persons = MissingPerson.query.filter_by(status='missing').all()
+        
+        # Simulate face detection (in real implementation, process the actual frame)
+        logging.info(f"Processing surveillance frame from {camera_ip} at {location}")
+        
+        return jsonify({
+            'success': True,
+            'matches': len(matches),
+            'message': f'Processed frame from {location}'
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in surveillance detection: {str(e)}")
+        return jsonify({'error': 'Detection failed'}), 500
+
 @app.route('/admin/case/<int:case_id>/update_status', methods=['POST'])
 def update_case_status():
     """Update case status"""
@@ -297,12 +354,12 @@ def create_default_admin():
     with app.app_context():
         if Admin.query.count() == 0:
             admin = Admin()
-            admin.username = 'admin'
-            admin.email = 'admin@missingpersons.com'
-            admin.set_password('admin123')
+            admin.username = 'gaurav'
+            admin.email = 'gauravchauhan292005@gmail.com'
+            admin.set_password('gauravacess')
             db.session.add(admin)
             db.session.commit()
-            logging.info("Default admin user created: admin/admin123")
+            logging.info("Default admin user created: gaurav/gauravacess")
 
 # Initialize default admin after app context is available
 create_default_admin()
