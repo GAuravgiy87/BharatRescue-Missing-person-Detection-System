@@ -9,18 +9,28 @@ def send_detection_alert(missing_person, detection):
     try:
         subject = f"ALERT: {missing_person.name} has been detected!"
         
+        # Check if this is a high confidence detection (person marked as found)
+        status_message = ""
+        if detection.confidence_score > 0.5:
+            status_message = f"""
+        🎉 GREAT NEWS: Due to the high confidence score ({detection.confidence_score:.2%}), 
+        we have automatically marked {missing_person.name} as FOUND in our system.
+        
+        """
+        
         body = f"""
         Dear {missing_person.contact_name},
 
         We have detected a potential match for {missing_person.name} who was reported missing.
 
-        Detection Details:
+        {status_message}Detection Details:
         - Person: {missing_person.name}
         - Age: {missing_person.age}
         - Gender: {missing_person.gender}
         - Detection Time: {detection.detection_time or 'Just now'}
         - Location: {detection.detected_location or 'Location not specified'}
         - Confidence Score: {detection.confidence_score:.2%}
+        - Case Status: {missing_person.status.upper()}
 
         Original Report Details:
         - Last Seen: {missing_person.last_seen_location}
@@ -28,6 +38,8 @@ def send_detection_alert(missing_person, detection):
         - Contact Phone: {missing_person.contact_phone}
 
         Please contact local authorities immediately if this is indeed {missing_person.name}.
+        
+        If this detection is incorrect, please contact us immediately to update the case status.
 
         This is an automated alert from the Missing Person Detection System.
         

@@ -180,8 +180,19 @@ def detection():
                             detection_record.confidence_score = confidence
                             db.session.add(detection_record)
                             
-                            # Send alert email if confidence is high enough
-                            if confidence > 0.6:
+                            # Send alert email and mark as found if confidence is over 50%
+                            if confidence > 0.5:
+                                # Mark person as found
+                                person.status = 'found'
+                                person.updated_at = datetime.utcnow()
+                                
+                                # Send alert email
+                                if send_detection_alert(person, detection_record):
+                                    detection_record.notified = True
+                                    
+                                logging.info(f"PERSON FOUND: {person.name} marked as found with {confidence:.1%} confidence at {location}")
+                            elif confidence > 0.4:
+                                # Still send alert for potential matches above 40%
                                 if send_detection_alert(person, detection_record):
                                     detection_record.notified = True
                 
@@ -334,6 +345,12 @@ def surveillance_detect():
             detection_record.detected_location = location
             detection_record.confidence_score = confidence
             db.session.add(detection_record)
+            
+            # Mark as found if confidence is over 50%
+            if confidence > 0.5:
+                detected_person.status = 'found'
+                detected_person.updated_at = datetime.utcnow()
+                logging.info(f"PERSON FOUND: {detected_person.name} marked as found with {confidence:.1%} confidence")
             
             # Send email alert
             try:
