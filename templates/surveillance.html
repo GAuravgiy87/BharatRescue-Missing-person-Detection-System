@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Surveillance System{% endblock %}
@@ -7,79 +6,73 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <h2><i class="fas fa-video"></i> Multi-Camera Surveillance System</h2>
-            <p class="text-muted">Monitor up to 5 IP cameras simultaneously and detect missing persons in real-time</p>
+            <h2><i class="fas fa-video"></i> Surveillance System</h2>
+            <p class="text-muted">Monitor IP cameras and detect missing persons in real-time</p>
         </div>
     </div>
 
-    <!-- Camera Setup Panel -->
+    <!-- Camera Connection Panel -->
     <div class="row mt-4">
-        <div class="col-12">
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-camera"></i> Camera Setup & Management</h5>
+                    <h5><i class="fas fa-camera"></i> Mobile IP Camera Connection</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <!-- Add Camera Form -->
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-plus"></i> Add New Camera</h6>
-                            <div class="mb-3">
-                                <label for="cameraIP" class="form-label">Camera IP Address</label>
-                                <input type="text" class="form-control" id="cameraIP" placeholder="192.168.1.100">
-                            </div>
-                            <div class="mb-3">
-                                <label for="cameraLocation" class="form-label">Camera Location</label>
-                                <input type="text" class="form-control" id="cameraLocation" placeholder="Main Entrance, Lobby, etc.">
-                            </div>
-                            <button class="btn btn-primary" id="addCamera">
-                                <i class="fas fa-plus"></i> Add Camera
-                            </button>
-                        </div>
-
-                        <!-- Instructions -->
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-info-circle"></i> Setup Instructions</h6>
-                            <ol class="mb-0">
-                                <li>Install "IP Webcam" app on Android devices</li>
-                                <li>Connect devices to the same WiFi network</li>
-                                <li>Open IP Webcam app → Settings → Video → Resolution (720p recommended)</li>
-                                <li>Return to main screen → tap "Start server"</li>
-                                <li>Note the IP address shown (e.g., 192.168.1.100:8080)</li>
-                                <li>Enter IP and location, then click "Add Camera"</li>
-                                <li>Click full stream link to view complete footage</li>
-                            </ol>
-                            <div class="alert alert-info mt-2">
-                                <small><strong>Max 5 cameras supported</strong> • Live feed refreshes every second • Click "Full Stream" for complete video controls</small>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="cameraIP" class="form-label">Camera IP Address</label>
+                        <input type="text" class="form-control" id="cameraIP" placeholder="192.168.1.100">
+                        <small class="form-text text-muted">
+                            Install IP Webcam app on Android and enter the IP address shown
+                        </small>
                     </div>
+                    <div class="mb-3">
+                        <label for="cameraLocation" class="form-label">Camera Location</label>
+                        <input type="text" class="form-control" id="cameraLocation" placeholder="Main Entrance">
+                    </div>
+                    <button class="btn btn-primary" id="connectCamera">
+                        <i class="fas fa-play"></i> Connect Camera
+                    </button>
+                    <button class="btn btn-danger d-none" id="disconnectCamera">
+                        <i class="fas fa-stop"></i> Disconnect
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Setup Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li>Install "IP Webcam" app from Play Store on your Android device</li>
+                        <li>Open the app and tap "Start server"</li>
+                        <li>Note the IP address shown (e.g., 192.168.1.100:8080)</li>
+                        <li>Enter the IP address above and click Connect</li>
+                        <li>The system will automatically scan for missing persons</li>
+                    </ol>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Active Cameras Panel -->
+    <!-- Live Feed Panel -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5><i class="fas fa-desktop"></i> Active Cameras (<span id="activeCameraCount">0</span>/5)</h5>
+                    <h5><i class="fas fa-desktop"></i> Live Camera Feed</h5>
                     <div>
-                        <button class="btn btn-success btn-sm" id="startAllCameras">
-                            <i class="fas fa-play"></i> Start All
-                        </button>
-                        <button class="btn btn-danger btn-sm" id="stopAllCameras">
-                            <i class="fas fa-stop"></i> Stop All
-                        </button>
+                        <span class="badge bg-secondary" id="connectionStatus">Disconnected</span>
+                        <span class="badge bg-info" id="detectionStatus">Detection: Off</span>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div id="cameraGrid" class="row g-3">
-                        <div class="col-12 text-center text-muted">
-                            <i class="fas fa-video-slash" style="font-size: 3rem;"></i>
-                            <p class="mt-2">No cameras added yet. Add your first camera above.</p>
-                        </div>
+                <div class="card-body text-center">
+                    <div id="cameraFeed" class="border rounded p-4" style="min-height: 400px; background: #1a1a1a;">
+                        <i class="fas fa-video-slash text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-3">No camera connected</p>
                     </div>
                 </div>
             </div>
@@ -90,14 +83,8 @@
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5><i class="fas fa-search"></i> Live Detection Results</h5>
-                    <div>
-                        <span class="badge bg-info" id="detectionStatus">Detection: Off</span>
-                        <button class="btn btn-sm btn-outline-secondary" id="clearResults">
-                            <i class="fas fa-trash"></i> Clear
-                        </button>
-                    </div>
+                <div class="card-header">
+                    <h5><i class="fas fa-search"></i> Detection Results</h5>
                 </div>
                 <div class="card-body">
                     <div id="detectionResults">
@@ -110,27 +97,15 @@
 </div>
 
 <script>
-let cameras = [];
-let detectionIntervals = {};
-let cameraRefreshIntervals = {};
-let maxCameras = 5;
+let isConnected = false;
+let detectionInterval;
 
-document.getElementById('addCamera').addEventListener('click', addCamera);
-document.getElementById('startAllCameras').addEventListener('click', startAllCameras);
-document.getElementById('stopAllCameras').addEventListener('click', stopAllCameras);
-document.getElementById('clearResults').addEventListener('click', clearResults);
-
-function addCamera() {
+document.getElementById('connectCamera').addEventListener('click', function() {
     const cameraIP = document.getElementById('cameraIP').value.trim();
     const location = document.getElementById('cameraLocation').value.trim() || 'Unknown Location';
     
     if (!cameraIP) {
         alert('Please enter a camera IP address');
-        return;
-    }
-
-    if (cameras.length >= maxCameras) {
-        alert(`Maximum ${maxCameras} cameras supported`);
         return;
     }
     
@@ -146,213 +121,105 @@ function addCamera() {
         alert('Please enter a valid IP address (e.g., 192.168.1.100 or 192.168.1.100:8080)');
         return;
     }
+    
+    connectToCamera(cameraIP, location);
+});
 
-    // Check if camera already exists
-    if (cameras.find(cam => cam.ip === cameraIP)) {
-        alert('Camera with this IP already exists');
-        return;
+document.getElementById('disconnectCamera').addEventListener('click', function() {
+    disconnectCamera();
+});
+
+function connectToCamera(ip, location) {
+    // Update UI
+    document.getElementById('connectCamera').classList.add('d-none');
+    document.getElementById('disconnectCamera').classList.remove('d-none');
+    document.getElementById('connectionStatus').textContent = 'Connected';
+    document.getElementById('connectionStatus').className = 'badge bg-success';
+    document.getElementById('detectionStatus').textContent = 'Detection: Active';
+    document.getElementById('detectionStatus').className = 'badge bg-success';
+    
+    // Show camera feed with proper URL handling
+    const feedDiv = document.getElementById('cameraFeed');
+    
+    // Test if IP already has port, if not add :8080
+    let fullCameraUrl = ip;
+    if (!ip.includes(':')) {
+        fullCameraUrl = `${ip}:8080`;
     }
     
-    const cameraId = `camera_${Date.now()}`;
-    const camera = {
-        id: cameraId,
-        ip: cameraIP,
-        location: location,
-        active: false,
-        status: 'disconnected'
-    };
-    
-    cameras.push(camera);
-    renderCameraGrid();
-    updateActiveCameraCount();
-    
-    // Clear form
-    document.getElementById('cameraIP').value = '';
-    document.getElementById('cameraLocation').value = '';
-    
-    addDetectionResult(`Camera added: ${location} (${cameraIP})`, 'info');
-}
-
-function renderCameraGrid() {
-    const grid = document.getElementById('cameraGrid');
-    
-    if (cameras.length === 0) {
-        grid.innerHTML = `
-            <div class="col-12 text-center text-muted">
-                <i class="fas fa-video-slash" style="font-size: 3rem;"></i>
-                <p class="mt-2">No cameras added yet. Add your first camera above.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    grid.innerHTML = '';
-    
-    cameras.forEach(camera => {
-        const cameraDiv = document.createElement('div');
-        cameraDiv.className = camera.active ? 'col-md-6 col-lg-4' : 'col-md-4 col-lg-3';
-        
-        const fullCameraUrl = camera.ip.includes(':') ? camera.ip : `${camera.ip}:8080`;
-        
-        cameraDiv.innerHTML = `
-            <div class="card ${camera.active ? 'border-success' : 'border-secondary'}">
-                <div class="card-header d-flex justify-content-between align-items-center py-2">
-                    <small class="fw-bold">${camera.location}</small>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn ${camera.active ? 'btn-danger' : 'btn-success'}" 
-                                onclick="${camera.active ? 'stopCamera' : 'startCamera'}('${camera.id}')">
-                            <i class="fas ${camera.active ? 'fa-stop' : 'fa-play'}"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" onclick="removeCamera('${camera.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+    feedDiv.innerHTML = `
+        <div class="text-center">
+            <div class="mb-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading camera feed...</span>
                 </div>
-                <div class="card-body p-2">
-                    <div class="camera-feed-container" style="height: ${camera.active ? '200px' : '100px'}; position: relative;">
-                        ${camera.active ? `
-                            <div style="position: relative; width: 100%; height: 100%; background: #000; border-radius: 4px; overflow: hidden;">
-                                <img src="http://${fullCameraUrl}/shot.jpg" 
-                                     id="camera-${camera.id}" 
-                                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px;" 
-                                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OSIgZm9udC1zaXplPSIxMiI+Tm8gU2lnbmFsPC90ZXh0Pgo8L3N2Zz4='; this.style.filter='grayscale(100%)';"/>
-                                <div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
-                                    LIVE
-                                </div>
-                                <div style="position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
-                                    ${fullCameraUrl}
-                                </div>
-                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
-                                    <a href="http://${fullCameraUrl}" target="_blank" class="btn btn-sm btn-primary" style="opacity: 0.8;">
-                                        <i class="fas fa-external-link-alt"></i> Full Stream
-                                    </a>
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
-                                <i class="fas fa-video-slash mb-2"></i>
-                                <small>Disconnected</small>
-                            </div>
-                        `}
-                    </div>
-                    <div class="mt-2">
-                        <small class="text-muted d-block">${camera.ip}</small>
-                        <span class="badge ${camera.active ? 'bg-success' : 'bg-secondary'}" style="font-size: 0.7rem;">
-                            ${camera.active ? 'Active' : 'Inactive'}
-                        </span>
-                    </div>
+                <p class="mt-2">Connecting to camera...</p>
+            </div>
+            <div class="camera-container">
+                <iframe src="http://${fullCameraUrl}/video" 
+                       width="100%" 
+                       height="400" 
+                       style="border: none; border-radius: 8px; background: #000;"
+                       onload="this.previousElementSibling.style.display='none';">
+                </iframe>
+                <div class="mt-2 text-center">
+                    <small class="text-muted">If camera doesn't show, try opening: <a href="http://${fullCameraUrl}/video" target="_blank">http://${fullCameraUrl}/video</a></small>
                 </div>
             </div>
-        `;
-        
-        grid.appendChild(cameraDiv);
-    });
+            <div class="mt-2">
+                <small class="text-muted">Camera: ${fullCameraUrl} | Location: ${location}</small>
+                <br>
+                <small class="text-info">
+                    <i class="fas fa-info-circle"></i> 
+                    If video doesn't appear, ensure IP Webcam app is running on your phone
+                </small>
+            </div>
+            <div class="mt-2">
+                <a href="http://${fullCameraUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt"></i> Open in New Tab
+                </a>
+            </div>
+        </div>
+    `;
+    
+    isConnected = true;
+    
+    // Start detection simulation (every 5 seconds for immediate testing)
+    detectionInterval = setInterval(() => {
+        performDetection(ip, location);
+    }, 5000);
+    
+    // Show success message
+    addDetectionResult(`Connected to camera at ${ip} (${location})`, 'success');
 }
 
-function startCamera(cameraId) {
-    const camera = cameras.find(c => c.id === cameraId);
-    if (!camera) return;
-    
-    camera.active = true;
-    camera.status = 'connected';
-    renderCameraGrid();
-    updateActiveCameraCount();
-    updateDetectionStatus();
-    
-    // Start camera image refresh for live feed
-    startCameraRefresh(cameraId);
-    
-    // Start detection for this camera
-    detectionIntervals[cameraId] = setInterval(() => {
-        performDetection(camera.ip, camera.location);
-    }, 2000); // Detection every 2 seconds for faster response
-    
-    addDetectionResult(`📹 Camera started: ${camera.location} (${camera.ip})`, 'success');
-}
-
-function stopCamera(cameraId) {
-    const camera = cameras.find(c => c.id === cameraId);
-    if (!camera) return;
-    
-    camera.active = false;
-    camera.status = 'disconnected';
-    
-    // Stop detection for this camera
-    if (detectionIntervals[cameraId]) {
-        clearInterval(detectionIntervals[cameraId]);
-        delete detectionIntervals[cameraId];
+function disconnectCamera() {
+    // Clear detection interval
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
     }
     
-    // Stop camera refresh
-    stopCameraRefresh(cameraId);
+    // Update UI
+    document.getElementById('connectCamera').classList.remove('d-none');
+    document.getElementById('disconnectCamera').classList.add('d-none');
+    document.getElementById('connectionStatus').textContent = 'Disconnected';
+    document.getElementById('connectionStatus').className = 'badge bg-secondary';
+    document.getElementById('detectionStatus').textContent = 'Detection: Off';
+    document.getElementById('detectionStatus').className = 'badge bg-info';
     
-    renderCameraGrid();
-    updateActiveCameraCount();
-    updateDetectionStatus();
+    // Reset camera feed
+    const feedDiv = document.getElementById('cameraFeed');
+    feedDiv.innerHTML = `
+        <i class="fas fa-video-slash text-muted" style="font-size: 4rem;"></i>
+        <p class="text-muted mt-3">No camera connected</p>
+    `;
     
-    addDetectionResult(`📹 Camera stopped: ${camera.location}`, 'warning');
-}
-
-function removeCamera(cameraId) {
-    if (!confirm('Are you sure you want to remove this camera?')) return;
-    
-    const camera = cameras.find(c => c.id === cameraId);
-    if (camera && camera.active) {
-        stopCamera(cameraId);
-    }
-    
-    // Ensure refresh intervals are stopped
-    stopCameraRefresh(cameraId);
-    
-    cameras = cameras.filter(c => c.id !== cameraId);
-    renderCameraGrid();
-    updateActiveCameraCount();
-    updateDetectionStatus();
-    
-    addDetectionResult(`Camera removed: ${camera ? camera.location : 'Unknown'}`, 'info');
-}
-
-function startAllCameras() {
-    if (cameras.length === 0) {
-        alert('No cameras to start. Please add cameras first.');
-        return;
-    }
-    
-    cameras.forEach(camera => {
-        if (!camera.active) {
-            startCamera(camera.id);
-        }
-    });
-}
-
-function stopAllCameras() {
-    cameras.forEach(camera => {
-        if (camera.active) {
-            stopCamera(camera.id);
-        }
-    });
-}
-
-function updateActiveCameraCount() {
-    const activeCount = cameras.filter(c => c.active).length;
-    document.getElementById('activeCameraCount').textContent = activeCount;
-}
-
-function updateDetectionStatus() {
-    const activeCount = cameras.filter(c => c.active).length;
-    const statusElement = document.getElementById('detectionStatus');
-    
-    if (activeCount > 0) {
-        statusElement.textContent = `Detection: Active (${activeCount} cameras)`;
-        statusElement.className = 'badge bg-success';
-    } else {
-        statusElement.textContent = 'Detection: Off';
-        statusElement.className = 'badge bg-info';
-    }
+    isConnected = false;
+    addDetectionResult('Camera disconnected', 'info');
 }
 
 function performDetection(cameraIP, location) {
-    // Perform detection for this specific camera
+    // Simulate frame capture and detection
     fetch('/admin/surveillance/detect', {
         method: 'POST',
         headers: {
@@ -370,25 +237,23 @@ function performDetection(cameraIP, location) {
             
             if (data.alert_sent) {
                 // High priority alert
-                addDetectionResult(`🚨 ALERT! ${data.detected_person} detected at ${location} (${data.confidence}) - Camera: ${cameraIP}`, 'danger');
-                addDetectionResult(`📧 Email alert sent to contact`, 'success');
+                addDetectionResult(`🚨 MISSING PERSON DETECTED! ${data.detected_person} found at ${location} (${data.confidence})`, 'danger');
+                addDetectionResult(`📧 Email alert sent to gauravchauhan292005@gmail.com`, 'success');
                 
-                // Play alert sound
+                // Play alert sound if possible
                 try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoT');
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoTXrTp66hVFApGn+DyvGQdBjmQ1/LNeSsFJnfH8N2QQAoT');
                     audio.play().catch(() => {}); // Silent fail
                 } catch(e) {}
+                
             } else {
-                // Regular monitoring message (show less frequently to avoid spam)
-                if (Math.random() < 0.15) { // Show only 15% of routine checks to reduce clutter
-                    addDetectionResult(`${timestamp} - ${data.message}`, 'info');
-                }
+                addDetectionResult(`${timestamp} - ${data.message}`, 'info');
             }
         }
     })
     .catch(error => {
         console.error('Detection error:', error);
-        addDetectionResult(`Detection error at ${location} (${cameraIP})`, 'warning');
+        addDetectionResult('Detection error occurred', 'warning');
     });
 }
 
@@ -402,51 +267,38 @@ function addDetectionResult(message, type) {
     
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type === 'danger' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info'} mb-2`;
-    alertDiv.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start">
-            <div>${message}</div>
-            <small class="text-muted">${new Date().toLocaleTimeString()}</small>
-        </div>
-    `;
+    alertDiv.textContent = message;
     
     // Add to top of results
     resultsDiv.insertBefore(alertDiv, resultsDiv.firstChild);
     
-    // Keep only last 15 results
-    while (resultsDiv.children.length > 15) {
+    // Keep only last 10 results
+    while (resultsDiv.children.length > 10) {
         resultsDiv.removeChild(resultsDiv.lastChild);
     }
 }
 
-function startCameraRefresh(cameraId) {
-    // Refresh camera image every 1 second for live effect
-    cameraRefreshIntervals[cameraId] = setInterval(() => {
-        const camera = cameras.find(c => c.id === cameraId);
-        if (camera && camera.active) {
-            const fullCameraUrl = camera.ip.includes(':') ? camera.ip : `${camera.ip}:8080`;
-            const imgElement = document.getElementById(`camera-${cameraId}`);
-            if (imgElement) {
-                // Add timestamp to prevent caching and get fresh frame
-                const timestamp = Date.now();
-                imgElement.src = `http://${fullCameraUrl}/shot.jpg?t=${timestamp}`;
-            }
-        }
-    }, 1000); // Refresh every second
+function showCameraError(cameraUrl) {
+    const feedDiv = document.getElementById('cameraFeed');
+    feedDiv.innerHTML = `
+        <div class="text-center p-4">
+            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+            <h5 class="mt-3">Camera Connection Issue</h5>
+            <p class="text-muted">Could not connect to camera at ${cameraUrl}</p>
+            <div class="alert alert-info text-start mt-3">
+                <strong>Troubleshooting:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Make sure IP Webcam app is running on your phone</li>
+                    <li>Both devices should be on the same WiFi network</li>
+                    <li>Try accessing <a href="http://${cameraUrl}" target="_blank">http://${cameraUrl}</a> directly</li>
+                    <li>Check if your phone's IP address has changed</li>
+                </ul>
+            </div>
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Retry Connection
+            </button>
+        </div>
+    `;
 }
-
-function stopCameraRefresh(cameraId) {
-    if (cameraRefreshIntervals[cameraId]) {
-        clearInterval(cameraRefreshIntervals[cameraId]);
-        delete cameraRefreshIntervals[cameraId];
-    }
-}
-
-function clearResults() {
-    document.getElementById('detectionResults').innerHTML = '<p class="text-muted">Detection results cleared.</p>';
-}
-
-// Initialize page
-renderCameraGrid();
-updateActiveCameraCount();
 </script>
 {% endblock %}
