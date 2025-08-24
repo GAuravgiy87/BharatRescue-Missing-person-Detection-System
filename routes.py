@@ -334,9 +334,15 @@ def surveillance_detect():
             db.session.add(detection_record)
             
             # Send email alert
-            if send_detection_alert(detected_person, detection_record):
-                detection_record.notified = True
-                logging.info(f"ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
+            try:
+                if send_detection_alert(detected_person, detection_record):
+                    detection_record.notified = True
+                    logging.info(f"ALERT SENT: {detected_person.name} detected at {location} with {confidence:.1%} confidence")
+                else:
+                    logging.warning(f"Failed to send email alert for {detected_person.name}")
+            except Exception as e:
+                logging.error(f"Error sending detection alert: {str(e)}")
+                detection_record.notified = False
             
             db.session.commit()
             

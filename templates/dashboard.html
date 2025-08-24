@@ -72,7 +72,7 @@
                     <p class="card-text">
                         <small class="text-muted">
                             <i class="fas fa-user me-1"></i>{{ case.gender }}, {{ case.age }} years old<br>
-                            <i class="fas fa-calendar me-1"></i>Last seen: {{ case.last_seen_date.strftime('%B %d, %Y') }}<br>
+                            <i class="fas fa-calendar me-1"></i>Last seen: {{ case.last_seen_date }}<br>
                             <i class="fas fa-map-marker-alt me-1"></i>{{ case.last_seen_location[:50] }}{% if case.last_seen_location|length > 50 %}...{% endif %}
                         </small>
                     </p>
