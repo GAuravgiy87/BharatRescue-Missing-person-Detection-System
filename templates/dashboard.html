@@ -233,7 +233,7 @@ function viewDetails(caseId) {
 }
 
 function contactInfo(caseId) {
-    const cases = {{ cases.items | tojson | safe }};
+    const cases = {{ cases | tojson | safe }};
     const caseData = cases.find(c => c.id === caseId);
     
     if (caseData) {

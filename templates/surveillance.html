@@ -138,15 +138,43 @@ function connectToCamera(ip, location) {
     document.getElementById('detectionStatus').textContent = 'Detection: Active';
     document.getElementById('detectionStatus').className = 'badge bg-success';
     
-    // Show camera feed
+    // Show camera feed with proper URL handling
     const feedDiv = document.getElementById('cameraFeed');
+    
+    // Test if IP already has port, if not add :8080
+    let fullCameraUrl = ip;
+    if (!ip.includes(':')) {
+        fullCameraUrl = `${ip}:8080`;
+    }
+    
     feedDiv.innerHTML = `
-        <img src="http://${ip}:8080/video" 
-             style="max-width: 100%; height: auto; border-radius: 8px;" 
-             alt="Live Camera Feed"
-             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkNhbWVyYSBVbmF2YWlsYWJsZTwvdGV4dD48L3N2Zz4='; this.onerror=null;">
-        <div class="mt-2">
-            <small class="text-muted">Camera: ${ip} | Location: ${location}</small>
+        <div class="text-center">
+            <div class="mb-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading camera feed...</span>
+                </div>
+                <p class="mt-2">Connecting to camera...</p>
+            </div>
+            <iframe src="http://${fullCameraUrl}/video" 
+                   width="100%" 
+                   height="400" 
+                   style="border: none; border-radius: 8px; background: #000;"
+                   onload="this.previousElementSibling.style.display='none';"
+                   onerror="showCameraError('${fullCameraUrl}')">
+            </iframe>
+            <div class="mt-2">
+                <small class="text-muted">Camera: ${fullCameraUrl} | Location: ${location}</small>
+                <br>
+                <small class="text-info">
+                    <i class="fas fa-info-circle"></i> 
+                    If video doesn't appear, ensure IP Webcam app is running on your phone
+                </small>
+            </div>
+            <div class="mt-2">
+                <a href="http://${fullCameraUrl}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt"></i> Open in New Tab
+                </a>
+            </div>
         </div>
     `;
     
@@ -235,6 +263,29 @@ function addDetectionResult(message, type) {
     while (resultsDiv.children.length > 10) {
         resultsDiv.removeChild(resultsDiv.lastChild);
     }
+}
+
+function showCameraError(cameraUrl) {
+    const feedDiv = document.getElementById('cameraFeed');
+    feedDiv.innerHTML = `
+        <div class="text-center p-4">
+            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+            <h5 class="mt-3">Camera Connection Issue</h5>
+            <p class="text-muted">Could not connect to camera at ${cameraUrl}</p>
+            <div class="alert alert-info text-start mt-3">
+                <strong>Troubleshooting:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Make sure IP Webcam app is running on your phone</li>
+                    <li>Both devices should be on the same WiFi network</li>
+                    <li>Try accessing <a href="http://${cameraUrl}" target="_blank">http://${cameraUrl}</a> directly</li>
+                    <li>Check if your phone's IP address has changed</li>
+                </ul>
+            </div>
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Retry Connection
+            </button>
+        </div>
+    `;
 }
 </script>
 {% endblock %}
