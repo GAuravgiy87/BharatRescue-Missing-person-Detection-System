@@ -15,7 +15,7 @@ def send_detection_alert_with_image(missing_person, detection, detection_image_p
     try:
         # Use Gmail SMTP directly for better reliability
         gmail_user = "gauravchauhan292005@gmail.com"
-        gmail_password = "GauravChauhan0927"  # REPLACE WITH APP PASSWORD FROM GOOGLE
+        gmail_password = "YOUR_16_CHAR_APP_PASSWORD_HERE"  # Replace with the 16-character App Password from Google
         
         subject = f"🚨 ALERT: {missing_person.name} has been FOUND!"
         
